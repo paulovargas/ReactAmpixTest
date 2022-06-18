@@ -61,6 +61,8 @@ export default class ClienteCrud extends Component {
     novoCadastro: false,
     salvarDados: false,
     pesqCliente: "",
+    resVerifica: false,
+    newCod: false,
   };
 
   componentWillMount() {
@@ -77,6 +79,14 @@ export default class ClienteCrud extends Component {
   }
 
   save() {
+    {
+      console.log("Res veri :", this.state.resVerifica);
+
+      this.state.resVerifica ? this.salvaDados() : "";
+    }
+  }
+
+  salvaDados() {
     const cliente = this.state.cliente;
     const method = cliente.id ? "put" : "post";
     const url = cliente.id ? `${baseUrl}/${cliente.id}` : baseUrl;
@@ -125,6 +135,7 @@ export default class ClienteCrud extends Component {
               stageNew: !this.state.stageNew,
               mostraLista: !this.state.mostraLista,
               mostraCadastrar: !this.state.mostraCadastrar,
+              newCod: !this.state.newCod,
             })
           }
         >
@@ -179,13 +190,14 @@ export default class ClienteCrud extends Component {
                     this.setState({
                       mostraLista: !this.state.mostraLista,
                       stageNew: !this.state.stageNew,
+                      newCod: !this.state.newCod,
                     })
                   }
                 ></IconButton>
               </div>
             </div>
 
-            <div className="col-12 col-md-6">
+            <div className="col-12 col-md-6" id="formulario" name="formulario">
               <div className="form-group">
                 <label>Código</label>
                 <input
@@ -193,7 +205,9 @@ export default class ClienteCrud extends Component {
                   className="form-control"
                   name="codCliente"
                   value={this.state.cliente.codCliente}
-                  onChange={(e) => this.updateField(e)}
+                  onChange={this.state.newCod ? (e) => this.updateField(e) : ""}
+                  //{(this.state.stageNew ? {onChange={(e) => this.updateField(e)}} : '')}
+                  //onChange={(e) => this.updateField(e)}
                   placeholder="Código"
                 />
               </div>
@@ -329,9 +343,13 @@ export default class ClienteCrud extends Component {
             <div className="col-12 d-flex justify-content-end">
               <button
                 className="btn btn-primary"
-                onClick={(e) => this.verificaCodigo(e)}
+                onClick={
+                  this.state.newCod
+                    ? (e) => this.verificaCodigo(e)
+                    : (e) => this.salvaDados(e)
+                }
               >
-                Salvar
+                {this.state.newCod ? "Salvar" : "Alterar"}
               </button>
 
               <button
@@ -363,21 +381,23 @@ export default class ClienteCrud extends Component {
 
     console.log("Lista cliente :", listaClientes);
 
-    function codigoDoCliente(value) {
-      if (value.codCliente === novoCod) {
-        console.log("Código Value: ", value.codCliente);
-        console.log("Código Novo: ", novoCod);
+    const resultConsultCod = [];
+
+    for (let i = 0; i < listaClientes.length; ++i) {
+      if (novoCod === listaClientes[i].codCliente) {
+        this.state.resVerifica = false;
+        i = listaClientes.length;
         window.alert("Existe outro cliente com esse código");
-        return false;
-      }
-      value.codCliente = novoCod;
-      return true;
+        console.log(
+          "resultConsultCod :",
+          resultConsultCod.push(listaClientes[i])
+        );
+      } else this.state.resVerifica = true;
+      //break;
     }
-    const codiCliente = listaClientes.filter(codigoDoCliente);
-    codiCliente.forEach((e) => {
-      e;
-      console.log("Código e: ", e);
-    });
+    //resultConsultCod ? "" : this.salvaDados();
+    //return resultConsultCod;
+    this.save();
   }
 
   load(cliente) {
@@ -399,6 +419,7 @@ export default class ClienteCrud extends Component {
     });
 
     this.setState({ stageNew: !this.state.stageNew }),
+      this.setState({ newCod: false }),
       this.setState({ mostraLista: !this.state.mostraLista }),
       this.setState({ mostraCadastrar: false }),
       this.setState({ cliente });
@@ -445,6 +466,7 @@ export default class ClienteCrud extends Component {
           <tr>
             <th>Código</th>
             <th>Nome</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>{this.renderRows()}</tbody>
@@ -455,11 +477,18 @@ export default class ClienteCrud extends Component {
   renderRows() {
     return this.state.list.map((cliente) => {
       return (
-        <tr key={cliente.id} onClick={() => this.load(cliente)}>
-          <td>{cliente.codCliente}</td>
-          <td>{cliente.nomeCliente}</td>
+        <tr key={cliente.id}>
+          <td onClick={() => this.load(cliente)}>{cliente.codCliente}</td>
+          <td onClick={() => this.load(cliente)}>{cliente.nomeCliente}</td>
 
-          <td></td>
+          <td>
+            <button
+              className="btn btn-danger ml-2"
+              onClick={() => this.remove(cliente)}
+            >
+              <i className="fa fa-trash"></i>
+            </button>
+          </td>
         </tr>
       );
     });

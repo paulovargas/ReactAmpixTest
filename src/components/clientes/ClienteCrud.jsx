@@ -114,23 +114,18 @@ export default class ClienteCrud extends Component {
   setBusca(e) {
     const pesqCliente = e.toLowerCase();
     const listaClientes = this.state.list;
-    const resultConsultCliente = [];
-    console.log("Pesquisa : ", pesqCliente);
 
     var clientes = listaClientes;
     function buscarCliente(listaClientes) {
-      console.log("Entrou no for ");
-      console.log("pesqCliente : ", pesqCliente);
-
       if (listaClientes.nomeCliente.toLowerCase().includes(pesqCliente)) {
-        console.log("Entrou no if ");
         return listaClientes;
       }
     }
     var pesquisado = clientes.filter(buscarCliente);
-    console.log("pesquisado :", pesquisado);
     this.setState({ list: pesquisado });
-    if (!pesqCliente) this.render();
+    if (!pesqCliente) {
+      this.componentWillMount();
+    }
   }
 
   botaoCadastro() {

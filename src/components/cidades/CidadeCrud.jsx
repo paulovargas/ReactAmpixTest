@@ -97,7 +97,10 @@ export default class CidadeCrud extends Component {
 
     var cidades = listaCidades;
     function buscarCidade(listaCidades) {
-      if (listaCidades.nomeCidade.toLowerCase().includes(pesqCidade)) {
+      if (
+        listaCidades.nomeCidade.toLowerCase().includes(pesqCidade) ||
+        listaCidades.codCidade.includes(pesqCidade)
+      ) {
         return listaCidades;
       }
     }
@@ -219,7 +222,7 @@ export default class CidadeCrud extends Component {
 
               <button
                 className="btn btn-secondary ml-2"
-                onClick={(e) => this.clear(e)}
+                onClick={() => window.location.reload()}
               >
                 Cancelar
               </button>

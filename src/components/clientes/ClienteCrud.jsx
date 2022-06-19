@@ -117,7 +117,10 @@ export default class ClienteCrud extends Component {
 
     var clientes = listaClientes;
     function buscarCliente(listaClientes) {
-      if (listaClientes.nomeCliente.toLowerCase().includes(pesqCliente)) {
+      if (
+        listaClientes.nomeCliente.toLowerCase().includes(pesqCliente) ||
+        listaClientes.codCliente.includes(pesqCliente)
+      ) {
         return listaClientes;
       }
     }
@@ -345,7 +348,7 @@ export default class ClienteCrud extends Component {
 
               <button
                 className="btn btn-secondary ml-2"
-                onClick={(e) => this.clear(e)}
+                onClick={() => window.location.reload()}
               >
                 Cancelar
               </button>

@@ -7,6 +7,7 @@ const headerProps = {
   icon: "Clientes",
   title: "Clientes",
   subtitle: "Cadastro de clientes: Incluir, Listar, Alterar e Excluir!",
+  list: [],
 };
 
 const baseUrlCidades = "https://6282b7eb92a6a5e46218f315.mockapi.io/cidades";
@@ -53,7 +54,6 @@ const initialState = {
 export default class ClienteCrud extends Component {
   state = {
     ...initialState,
-    percent: 0,
     stageNew: false,
     mostraLista: true,
     mostraListaCidades: false,
@@ -61,6 +61,7 @@ export default class ClienteCrud extends Component {
     novoCadastro: false,
     salvarDados: false,
     pesqCliente: "",
+    cidadeCliente: "",
     resVerifica: false,
     newCod: false,
   };
@@ -79,11 +80,7 @@ export default class ClienteCrud extends Component {
   }
 
   save() {
-    {
-      console.log("Res veri :", this.state.resVerifica);
-
-      this.state.resVerifica ? this.salvaDados() : "";
-    }
+    this.state.resVerifica ? this.salvaDados() : "";
   }
 
   salvaDados() {
@@ -115,14 +112,25 @@ export default class ClienteCrud extends Component {
   };
 
   setBusca(e) {
-    console.log("Receba =", e);
-    this.pesqCliente = e;
-    console.log("Cliente:", this.state.list);
-    const pescaCliente = this.pesqCliente;
-    const clientesLista = this.state.list;
-    const filtroCliente = clientesLista.filter((pesq) => pesq === pescaCliente);
-    console.log("Clientes:", filtroCliente);
-    this.state.list = filtroCliente;
+    const pesqCliente = e.toLowerCase();
+    const listaClientes = this.state.list;
+    const resultConsultCliente = [];
+    console.log("Pesquisa : ", pesqCliente);
+
+    var clientes = listaClientes;
+    function buscarCliente(listaClientes) {
+      console.log("Entrou no for ");
+      console.log("pesqCliente : ", pesqCliente);
+
+      if (listaClientes.nomeCliente.toLowerCase().includes(pesqCliente)) {
+        console.log("Entrou no if ");
+        return listaClientes;
+      }
+    }
+    var pesquisado = clientes.filter(buscarCliente);
+    console.log("pesquisado :", pesquisado);
+    this.setState({ list: pesquisado });
+    if (!pesqCliente) this.render();
   }
 
   botaoCadastro() {
@@ -158,7 +166,6 @@ export default class ClienteCrud extends Component {
       stageNew: !this.state.stageNew,
       mostraListaCidades: !this.state.mostraListaCidades,
     });
-    console.log("Lista de cidades =", this.state.listCidades);
     return (
       <table className="table mt-4">
         <thead>
@@ -206,8 +213,6 @@ export default class ClienteCrud extends Component {
                   name="codCliente"
                   value={this.state.cliente.codCliente}
                   onChange={this.state.newCod ? (e) => this.updateField(e) : ""}
-                  //{(this.state.stageNew ? {onChange={(e) => this.updateField(e)}} : '')}
-                  //onChange={(e) => this.updateField(e)}
                   placeholder="Código"
                 />
               </div>
@@ -294,15 +299,9 @@ export default class ClienteCrud extends Component {
                   icon="search"
                   type="text"
                   className="form-control"
-                  name=""
                   value={this.state.cidadeCliente.nomeCidade}
-                  onChange={(e) => this.updateField(e)}
                   placeholder="Município"
                 />
-                {console.log(
-                  "Município :",
-                  this.state.cidadeCliente.nomeCidade
-                )}
               </div>
             </div>
             <div className="col-12 col-md-6">
@@ -312,9 +311,7 @@ export default class ClienteCrud extends Component {
                 <input
                   type="text"
                   className="form-control"
-                  name="nomeCliente"
                   value={this.state.cidadeCliente.uF}
-                  onChange={(e) => this.updateField(e)}
                   placeholder="Estado"
                 />
               </div>
@@ -331,7 +328,6 @@ export default class ClienteCrud extends Component {
                   }
                   placeholder={this.state.cidadeCliente.id}
                 />
-                {console.log("Município :", this.state.cidadeCliente.id)}
               </div>
             </div>
           </div>
@@ -360,10 +356,7 @@ export default class ClienteCrud extends Component {
               </button>
             </div>
           ) : (
-            <div>
-              {/**/}
-              {/*  */}
-            </div>
+            <div></div>
           )}
           {this.state.mostraLista ? this.renderTable() : ""}
           {this.state.mostraListaCidades ? this.renderTableCidades() : ""}
@@ -373,49 +366,31 @@ export default class ClienteCrud extends Component {
   }
 
   verificaCodigo() {
-    console.log("Codigo Cliente:", this.state.cliente.codCliente);
-
     const novoCod = this.state.cliente.codCliente;
-
     const listaClientes = this.state.list;
-
-    console.log("Lista cliente :", listaClientes);
-
     const resultConsultCod = [];
-
     for (let i = 0; i < listaClientes.length; ++i) {
       if (novoCod === listaClientes[i].codCliente) {
         this.state.resVerifica = false;
         i = listaClientes.length;
         window.alert("Existe outro cliente com esse código");
-        console.log(
-          "resultConsultCod :",
-          resultConsultCod.push(listaClientes[i])
-        );
       } else this.state.resVerifica = true;
-      //break;
     }
-    //resultConsultCod ? "" : this.salvaDados();
-    //return resultConsultCod;
     this.save();
   }
 
   load(cliente) {
-    console.log("Cidade Id", cliente.cityId);
-
     const listaCidades = this.state.listCidades;
-    console.log("Cidade state", listaCidades);
 
     function cidadeDoCliente(value) {
       if (value.id == cliente.cityId) {
-        console.log("Cidade Cliente", value);
         return value;
       }
     }
     const cidadeCliente = listaCidades.filter(cidadeDoCliente);
     cidadeCliente.forEach((e) => {
       e;
-      console.log("Cidade Cliente", (this.state.cidadeCliente = e));
+      this.state.cidadeCliente = e;
     });
 
     this.setState({ stageNew: !this.state.stageNew }),
@@ -426,10 +401,7 @@ export default class ClienteCrud extends Component {
   }
 
   loadCidade(cidade) {
-    console.log("Cidade selecionada :", cidade);
-    //this.setState({ cidadeCliente: cidade });
     this.state.cidadeCliente = cidade;
-    console.log("Cidade do cliente :", this.state.cidadeCliente);
     this.setState({
       stageNew: !this.state.stageNew,
       mostraListaCidades: !this.state.mostraListaCidades,
@@ -501,8 +473,6 @@ export default class ClienteCrud extends Component {
           <td>{cidade.codCidade}</td>
           <td>{cidade.nomeCidade}</td>
           <td>{cidade.uF}</td>
-
-          <td>{/* Condicão */}</td>
         </tr>
       );
     });

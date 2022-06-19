@@ -1,17 +1,13 @@
 import axios from "axios";
-import React, { Component, useState } from "react";
+import React, { Component } from "react";
 import Main from "../template/Main";
-import Grid from "../../template/grid";
-import IconButton from "../../template/iconButton";
+import IconButton from "../template/iconButton";
 
 const headerProps = {
   icon: "Cidades",
   title: "Cidades",
   subtitle: "Cadastro de cidades: Incluir, Listar, Alterar e Excluir!",
 };
-
-const cidadeTeste = "Santa Maria";
-this.props = cidadeTeste;
 
 //const baseUrl = "http://localhost:3001/cidades";
 
@@ -37,18 +33,13 @@ export default class CidadeCrud extends Component {
     stageNew: false,
     mostraLista: true,
     mostraCadastrar: true,
+    newCod: false,
   };
 
   componentWillMount() {
-    console.log("Teste - componentWillMount");
     axios(baseUrl).then((resp) => {
       this.setState({ list: resp.data });
     });
-  }
-
-  listaCidades() {
-    const cidadeTeste = "Santa Maria";
-    console.log(cidadeTeste);
   }
 
   clear() {
@@ -83,11 +74,39 @@ export default class CidadeCrud extends Component {
     this.setState({ [field]: val });
   };
 
-  search(e) {
-    //console.log(this.state.cidade);
+  save() {
+    this.state.resVerifica ? this.salvaDados() : "";
   }
 
-  mostraLista() {}
+  salvaDados() {
+    const cidade = this.state.cidade;
+    const method = cidade.id ? "put" : "post";
+    const url = cidade.id ? `${baseUrl}/${cidade.id}` : baseUrl;
+    axios[method](url, cidade).then((resp) => {
+      const list = this.getUpdatedList(resp.data);
+      this.setState({ cidade: initialState.cidade, list });
+    });
+    this.setState({ stageNew: !this.state.stageNew });
+    this.setState({ mostraCadastrar: !this.state.mostraCadastrar });
+    this.setState({ mostraLista: !this.state.mostraLista });
+  }
+
+  setBusca(e) {
+    const pesqCidade = e.toLowerCase();
+    const listaCidades = this.state.list;
+
+    var cidades = listaCidades;
+    function buscarCidade(listaCidades) {
+      if (listaCidades.nomeCidade.toLowerCase().includes(pesqCidade)) {
+        return listaCidades;
+      }
+    }
+    var pesquisado = cidades.filter(buscarCidade);
+    this.setState({ list: pesquisado });
+    if (!pesqCidade) {
+      this.componentWillMount();
+    }
+  }
 
   botaoCadastro() {
     return (
@@ -99,6 +118,7 @@ export default class CidadeCrud extends Component {
               stageNew: !this.state.stageNew,
               mostraLista: !this.state.mostraLista,
               mostraCadastrar: !this.state.mostraCadastrar,
+              newCod: !this.state.newCod,
             })
           }
         >
@@ -107,8 +127,8 @@ export default class CidadeCrud extends Component {
         <input
           type="text"
           className="form-control"
-          value={""}
-          onChange={""}
+          value={this.pesqCidade}
+          onChange={(e) => this.setBusca(e.target.value)}
           placeholder="Buscar nome ou código..."
         />
       </div>
@@ -131,6 +151,7 @@ export default class CidadeCrud extends Component {
                     this.setState({
                       mostraLista: !this.state.mostraLista,
                       stageNew: !this.state.stageNew,
+                      newCod: !this.state.newCod,
                     })
                   }
                 ></IconButton>
@@ -145,7 +166,7 @@ export default class CidadeCrud extends Component {
                   className="form-control"
                   name="codCidade"
                   value={this.state.cidade.codCidade}
-                  onChange={(e) => this.updateField(e)}
+                  onChange={this.state.newCod ? (e) => this.updateField(e) : ""}
                   placeholder="Código"
                 />
               </div>
@@ -185,8 +206,15 @@ export default class CidadeCrud extends Component {
         <div className="row">
           {this.state.stageNew ? (
             <div className="col-12 d-flex justify-content-end">
-              <button className="btn btn-primary" onClick={(e) => this.save(e)}>
-                Salvar
+              <button
+                className="btn btn-primary"
+                onClick={
+                  this.state.newCod
+                    ? (e) => this.verificaCodigo(e)
+                    : (e) => this.salvaDados(e)
+                }
+              >
+                {this.state.newCod ? "Salvar" : "Alterar"}
               </button>
 
               <button
@@ -204,9 +232,23 @@ export default class CidadeCrud extends Component {
       </div>
     );
   }
+  verificaCodigo() {
+    const novoCod = this.state.cidade.codCidade;
+    const listaCidade = this.state.list;
+    const resultConsultCod = [];
+    for (let i = 0; i < listaCidade.length; ++i) {
+      if (novoCod === listaCidade[i].codCidade) {
+        this.state.resVerifica = false;
+        i = listaCidade.length;
+        window.alert("Existe outro cliente com esse código");
+      } else this.state.resVerifica = true;
+    }
+    this.save();
+  }
 
   load(cidade) {
     this.setState({ stageNew: !this.state.stageNew }),
+      this.setState({ newCod: false }),
       this.setState({ mostraLista: !this.state.mostraLista }),
       this.setState({ mostraCadastrar: false }),
       this.setState({ cidade });
@@ -228,6 +270,7 @@ export default class CidadeCrud extends Component {
             <th>Código</th>
             <th>Município</th>
             <th>Estado</th>
+            <th>Ações</th>
           </tr>
         </thead>
 
@@ -239,12 +282,19 @@ export default class CidadeCrud extends Component {
   renderRows() {
     return this.state.list.map((cidade) => {
       return (
-        <tr key={cidade.id} onClick={() => this.load(cidade)}>
-          <td>{cidade.codCidade}</td>
-          <td>{cidade.nomeCidade}</td>
-          <td>{cidade.uF}</td>
+        <tr key={cidade.id}>
+          <td onClick={() => this.load(cidade)}>{cidade.codCidade}</td>
+          <td onClick={() => this.load(cidade)}>{cidade.nomeCidade}</td>
+          <td onClick={() => this.load(cidade)}>{cidade.uF}</td>
 
-          <td>{/* Condicão */}</td>
+          <td>
+            <button
+              className="btn btn-danger ml-2"
+              onClick={() => this.remove(cidade)}
+            >
+              <i className="fa fa-trash"></i>
+            </button>
+          </td>
         </tr>
       );
     });

@@ -1,7 +1,7 @@
 import axios from "axios";
-import React, { Component, useState } from "react";
+import React, { Component } from "react";
 import Main from "../template/Main";
-import IconButton from "../../template/iconButton";
+import IconButton from "../template/iconButton";
 
 const headerProps = {
   icon: "Clientes",
